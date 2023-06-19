@@ -40,8 +40,8 @@ func (group *RouterGroup) Group(prefix string) *RouterGroup {
 	return newGroup
 }
 
-func (group *RouterGroup) addRoute(method string, comp string, handler HandlerFunc) {
-	pattern := group.prefix + comp
+func (group *RouterGroup) addRoute(method string, path string, handler HandlerFunc) {
+	pattern := group.prefix + path
 	log.Printf("Route %4s - %s", method, pattern)
 	group.engine.router.addRoute(method, pattern, handler)
 }

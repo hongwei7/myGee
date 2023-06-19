@@ -28,8 +28,7 @@ func newContext(w http.ResponseWriter, req *http.Request) *Context {
 }
 
 func (c *Context) Param(key string) string {
-	v, _ := c.Params[key]
-	return v
+	return c.Params[key]
 }
 
 func (c *Context) PostForm(key string) string {

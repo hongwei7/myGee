@@ -5,8 +5,6 @@ import (
 	"strings"
 )
 
-type HandlerFunc func(c *Context)
-
 type router struct {
 	roots    map[string]*node
 	handlers map[string]HandlerFunc
@@ -78,9 +76,11 @@ func (r *router) handle(c *Context) {
 	n, params := r.getRoute(c.Method, c.Path)
 	if n != nil {
 		c.Params = params
-		key := c.Method + "-" + c.Path
+		key := c.Method + "-" + n.pattern
 		if handler, ok := r.handlers[key]; ok {
 			handler(c)
+		} else {
+			c.String(http.StatusNotFound, "404 NOT FOUND")
 		}
 	} else {
 		c.String(http.StatusNotFound, "404 NOT FOUND")

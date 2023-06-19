@@ -2,24 +2,41 @@ package main
 
 import (
 	"gee"
+	"log"
 	"net/http"
 )
 
-func helloHandler(c *gee.Context) {
-	c.String(http.StatusOK, "hello world")
-}
-
-func handler1(c *gee.Context) {
-	m := map[string]interface{}{
-		"name": "hongwei7",
-		"age":  25,
-	}
-	c.JSON(http.StatusOK, m)
-}
-
 func main() {
-	gee := gee.New()
-	gee.GET("/hello", helloHandler)
-	gee.GET("/", handler1)
-	gee.Run()
+	r := gee.New()
+	r.GET("/index", func(c *gee.Context) {
+		c.HTML(http.StatusOK, "<h1>Index Page</h1>")
+	})
+	v1 := r.Group("/v1")
+	{
+		v1.GET("/", func(c *gee.Context) {
+			c.HTML(http.StatusOK, "<h1>Hello Gee</h1>")
+		})
+
+		v1.GET("/hello", func(c *gee.Context) {
+			// expect /hello?name=geektutu
+			c.String(http.StatusOK, "hello %s, you're at %s\n", c.Query("name"), c.Path)
+		})
+	}
+	v2 := r.Group("/v2")
+	{
+		v2.GET("/hello/:name", func(c *gee.Context) {
+			// expect /hello/geektutu
+			log.Println(c.Params)
+			c.String(http.StatusOK, "hello %s, you're at %s\n", c.Param("name"), c.Path)
+		})
+		v2.POST("/login", func(c *gee.Context) {
+			c.JSON(http.StatusOK, gee.H{
+				"username": c.PostForm("username"),
+				"password": c.PostForm("password"),
+			})
+		})
+
+	}
+
+	r.Run()
 }

@@ -3,6 +3,7 @@ package gee
 import (
 	"log"
 	"net/http"
+	"path"
 	"strings"
 )
 
@@ -27,6 +28,13 @@ func New() *Engine {
 	}
 	engine.RouterGroup = &RouterGroup{engine: engine}
 	engine.groups = []*RouterGroup{engine.RouterGroup}
+	return engine
+}
+
+// Default use Logger() & Recovery middlewares
+func Default() *Engine {
+	engine := New()
+	engine.Use(Logger(), Recovery())
 	return engine
 }
 
@@ -69,6 +77,27 @@ func (engine *Engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	c := newContext(w, req)
 	c.handlers = middlewares
 	engine.router.handle(c)
+}
+
+func (group *RouterGroup) createStaticHandler(relativePath string, fs http.FileSystem) HandlerFunc {
+	absolutePath := path.Join(group.prefix, relativePath)
+	fileServer := http.StripPrefix(absolutePath, http.FileServer(fs))
+	return func(c *Context) {
+		file := c.Param("filePath")
+		if _, err := fs.Open(file); err != nil {
+			c.Status(http.StatusNotFound)
+			return
+		}
+
+		fileServer.ServeHTTP(c.Writer, c.Req)
+	}
+}
+
+func (group *RouterGroup) Static(relativePath string, root string) {
+	handler := group.createStaticHandler(relativePath, http.Dir(root))
+	urlPatttern := path.Join(relativePath, "/*filePath")
+
+	group.GET(urlPatttern, handler)
 }
 
 func (engine *Engine) Run() {

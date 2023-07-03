@@ -63,7 +63,7 @@ func B(c *gee.Context) {
 	log.Println("part4")
 }
 
-func main() {
+func groupTest() {
 	r := gee.New()
 	r.Use(gee.Logger()) // global midlleware
 	r.GET("/", func(c *gee.Context) {
@@ -81,4 +81,28 @@ func main() {
 	}
 
 	r.Run()
+}
+
+func staticTest() {
+	r := gee.New()
+	r.Static("/assets", "/home/hongwei7/桌面/blog/public/")
+	r.Run()
+}
+
+func recoveryTest() {
+		r := gee.Default()
+	r.GET("/", func(c *gee.Context) {
+		c.String(http.StatusOK, "Hello Geektutu\n")
+	})
+	// index out of range for testing Recovery()
+	r.GET("/panic", func(c *gee.Context) {
+		names := []string{"geektutu"}
+		c.String(http.StatusOK, names[100])
+	})
+
+	r.Run()
+}
+
+func main() {
+	recoveryTest()
 }
